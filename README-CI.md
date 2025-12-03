@@ -64,8 +64,47 @@ Access the web app from a browser from the URL: `http://localhost:80`
 
 1) Go to Github -> Settings -> Secrets and... -> Actions
 2) Create `New Repository Secret`
-3) Add the DOCKER_USERNAME=username and DOCKER_TOKEN=PAT secrets, respectively
+3) Add the DOCKER_USERNAME and DOCKER_TOKEN **secrets**, respectively
+   1) DOCKER_USERNAME and DOCKER_TOKEN is your login & password for authenticating to DockerHub
 
 **Task 3**: Setup Github Actions workflow
 
 We want to be able to build and push container images to my DockerHub repo
+
+**Workflow Trigger**:
+
+```yml
+on:
+  push:
+    branches:
+      - main
+```
+
+The workflow only runs when someone **pushes** commits to the `main` branch.
+
+Sections:
+
+`on:` -> Defines when the workflow should trigger
+`push:` -> The type of the trigger, so run when a **push** happens
+`branches:` -> Specifies which branches can trigger this workflow
+
+**Workflow Steps**:
+
+```yml
+# Rest of code above...
+steps:
+  - name: Checkout code
+    uses: actions/checkout@v4
+  
+  - name: Set up Docker Buildx
+    uses: docker/setup-buildx-action@v3
+  
+  - name: Login to Docker Hub
+    uses: docker/login-action@v3
+    with:
+      username: ${{ secrets.DOCKER_USERNAME }}
+      password: ${{ secrets.DOCKER_TOKEN }}
+# Rest of code below...
+```
+
+The steps are the sections of instructions within a job
