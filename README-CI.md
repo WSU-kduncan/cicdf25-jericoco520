@@ -43,7 +43,6 @@ flowchart TD
     D -.- D1[Prepare Docker builder]
     E -.- E1[Authenticate using GitHub secrets]
     F -.- F1[Generate semantic version tags]
-    G -.- G1[Create image and push to registry]
     I -.- I1[Validate image with correct tags]
 ```
 
