@@ -16,7 +16,7 @@ Automate the process of building, tagging, and publishing Docker container image
 | **Apache httpd** | Base web server image used to serve the website |
 | **Git** | Version control and semantic version tagging |
 
-Ref: [C6] I asked Claude to format the above nicely
+Ref: [C6] I asked Claude to format the Tools and Roles table
 
 ### CI/CD Process Flow
 
