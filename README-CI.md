@@ -1,4 +1,4 @@
-# cicdf25-jericoco520
+# Project 4 - CEG3120 - Jerico Corneja
 
 ## Continuous Integration Project Overview
 
