@@ -150,9 +150,9 @@ The workflow only runs when someone **pushes** commits to the `main` branch.
 
 Sections:
 
-`on:` -> Defines when the workflow should trigger
-`push:` -> The type of the trigger, so run when a **push** happens
-`branches:` -> Specifies which branches can trigger this workflow
+- `on:` -> Defines when the workflow should trigger
+- `push:` -> The type of the trigger, so run when a **push** happens
+- `branches:` -> Specifies which branches can trigger this workflow
 
 ### Workflow Steps
 
@@ -175,10 +175,10 @@ steps:
 
 Ref: [C1]
 
-`steps:` -> is a list of tasks that is performed for a job
-`uses:` -> for this workflow, are pre-built actions recognized by Github
-`- name:` -> an ID
-`with:` -> Added parameters to the selected action
+- `steps:` -> is a list of tasks that is performed for a job
+- `uses:` -> for this workflow, are pre-built actions recognized by Github
+- `- name:` -> an ID
+- `with:` -> Added parameters to the selected action
 
 #### Porting Workflows to Other Repos
 
@@ -194,7 +194,7 @@ Link to [workflow](https://github.com/WSU-kduncan/cicdf25-jericoco520/tree/main/
 
 #### Testing
 
-**Test 1:**:
+**Test 1**:
 
 - Push a commit on the main branch
 - Validate the workflow triggers on Github Actions
