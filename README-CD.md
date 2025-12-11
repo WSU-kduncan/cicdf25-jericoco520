@@ -2,9 +2,65 @@
 
 ## Continuous Delivery Project Overview
 
+### Goal
+
+Automate the deployment of a containerized web application so that pushing a new Docker image triggers an automatic container refresh on the EC2 instance.
+
+### Tools and Roles
+
+| Tool | Role |
+|------|------|
+| **AWS CloudFormation** | Provisions EC2 instance and security group |
+| **EC2 Instance** | Hosts Docker container and webhook listener |
+| **Ubuntu EC2** | Hosts the Docker container and webhook listener |
+| **Docker** | Runs containerized web application |
+| **DockerHub** | Stores images and sends webhook payloads |
+| **adnanh/webhook** | Listens for HTTP POST requests and triggers scripts |
+| **systemd** | Manages webhook listener as a service |
+| **Bash** | Scripting language for deploy.sh |
+| **GitHub** | Hosts project repository and deployment files |
+| **journalctl** | Allows viewing of logs |
+
 ### Diagram
 
-### Goal **TODO**
+```mermaid
+flowchart LR
+    subgraph GH["GitHub"]
+        A[Push to main]
+        B[Actions Workflow]
+    end
+
+    subgraph Actions["GitHub Actions"]
+        C[Checkout]
+        D[Build Image]
+        E[Push to Registry]
+    end
+
+    subgraph DH["DockerHub"]
+        F[Image Repository]
+        G[Webhook Trigger]
+    end
+
+    subgraph EC2["EC2 Instance"]
+        H[webhook listener\nport 9000]
+        I[deploy.sh]
+        J[Docker Container\nport 80]
+    end
+
+    A -->|triggers| B
+    B -->|runs| C
+    C --> D
+    D --> E
+    E -->|push image| F
+    F -->|triggers| G
+    G -->|POST payload| H
+    H -->|validates & executes| I
+    I -->|stop, pull, run| J
+```
+
+### Missing Functionality
+
+- **Payload origin not verified**: The webhook validates payload *content* (repo name, tag) but not *origin*. DockerHub does not sign payloads like GitHub does, so anyone who knows the endpoint URL and payload structure could theoretically trigger a deployment.
 
 ---
 
