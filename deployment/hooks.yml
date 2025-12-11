@@ -1,0 +1,29 @@
+# hooks.yml - Webhook configuration for CD pipeline
+# Location on EC2: /home/ubuntu/hooks.yml
+#
+# Author: Jerico Corneja
+# 
+# This hook triggers the deploy.sh script when a valid
+# request is received with the correct token.
+
+# Deploy hook for project 5 coffee website
+- id: "deploy-coffee-website"
+  execute-command: "/home/ubuntu/deploy.sh"
+  command-working-directory: "/home/ubuntu"
+  response-message: "Deployment triggered successfully"
+  trigger-rule:
+    and:
+    # Validate DockerHub payload matches the repository name
+      - match:
+          type: "value"
+          value: "jericoco520/p4-coffee-website"    
+          parameter:
+            source: "payload"
+            name: "repository.repo_name"
+    # Validate DockerHub payload matches the tag
+      - match:
+          type: "value"
+          value: "latest"
+          parameter:
+            source: "payload"
+            name: "push_data.tag"

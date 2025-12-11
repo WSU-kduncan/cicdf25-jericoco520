@@ -1,0 +1,33 @@
+# webhook.service - Systemd service file for webhook listener
+# Location on EC2: /etc/systemd/system/webhook.service
+#
+# Author: Jerico Corneja
+#
+# This service starts the webhook listener on boot and
+# restarts it automatically if it crashes.
+#
+# Installation:
+#   sudo cp webhook.service /etc/systemd/system/webhook.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable webhook
+#   sudo systemctl start webhook
+
+[Unit]
+Description=Webhook CD Pipeline Listener
+Documentation=https://github.com/adnanh/webhook
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+ExecStart=/usr/bin/webhook -hooks /home/ubuntu/hooks.yml -port 9000 -verbose
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+
