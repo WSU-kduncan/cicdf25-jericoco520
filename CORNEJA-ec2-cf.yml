@@ -1,0 +1,137 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >-
+  Creates an Ubuntu EC2 instance (t2.medium, 30GB) with Docker installed.
+  Security Group allows SSH from home/campus and HTTP/webhook access.
+
+Parameters:
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: Must be the name of an existing EC2 KeyPair.
+
+  InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: t2.medium
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+    ConstraintDescription: Must be a valid EC2 instance type.
+
+  HomeIP:
+    Description: My home IP address for SSH access (CIDR format)
+    Type: String
+    Default: 74.129.134.252/32
+
+  CampusCIDR:
+    Description: Campus network CIDR for SSH access
+    Type: String
+    Default: 130.108.0.0/16
+
+  Subnet:
+    Description: Using default VPC subnet
+    Type: AWS::EC2::Subnet::Id
+
+Mappings:
+  AWSRegionAMI:
+    us-east-1:
+      HVM64: ami-0f9de6e2d2f067fca  # Ubuntu 24.04 LTS
+
+Resources:
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SSH from home/campus, HTTP and webhook access
+      Tags:
+        - Key: Name
+          Value: CORNEJA-P5-SG
+      SecurityGroupIngress:
+        # SSH from home IP
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref HomeIP
+        # SSH from campus (WSU)
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref CampusCIDR
+        # HTTP from anywhere for web traffic
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        # Webhook listener (adnanh/webhook default port)
+        - IpProtocol: tcp
+          FromPort: 9000
+          ToPort: 9000
+          CidrIp: 0.0.0.0/0
+
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      # AMI: Ubuntu 24.04 LTS (looked up from Mappings)
+      ImageId: !FindInMap [AWSRegionAMI, !Ref "AWS::Region", HVM64]
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      # Network Configuration
+      SubnetId: !Ref Subnet
+      SecurityGroupIds:
+        - !GetAtt SecurityGroup.GroupId
+      # Volume: 30 GB gp3 storage
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 30
+            VolumeType: gp3
+            DeleteOnTermination: true
+      Tags:
+        - Key: Name
+          Value: CORNEJA-P5-Instance
+        - Key: Application
+          Value: !Ref AWS::StackId
+
+      # UserData: Commands to run on first boot
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          apt-get update && \
+          apt-get install -y git && \
+          curl -fsSL https://get.docker.com -o get-docker.sh && \
+          sh get-docker.sh && \
+          usermod -aG docker ubuntu && \
+          systemctl enable docker && \
+          systemctl start docker && \
+          cp /etc/hostname /etc/hostname.old && \
+          hostnamectl set-hostname CORNEJA-P5-Ubuntu && \
+          echo "127.0.0.1 CORNEJA-P5-Ubuntu" | tee -a /etc/hosts && \
+          reboot
+
+# OUTPUTS - Information displayed after stack creation
+Outputs:
+  InstanceId:
+    Description: Instance ID
+    Value: !Ref EC2Instance
+
+  AZ:
+    Description: Availability Zone of the newly created EC2 instance
+    Value: !GetAtt EC2Instance.AvailabilityZone
+
+  PublicIP:
+    Description: Public IP address (use this for SSH and webhook)
+    Value: !GetAtt EC2Instance.PublicIp
+
+  PublicDNS:
+    Description: Public DNS name of the instance
+    Value: !GetAtt EC2Instance.PublicDnsName
+
+  SSHCommand:
+    Description: SSH command to connect to the instance
+    Value: !Sub "ssh -i ${KeyName}.pem ubuntu@${EC2Instance.PublicIp}"
+
+  WebhookURL:
+    Description: Webhook listener URL (after installing webhook)
+    Value: !Sub "http://${EC2Instance.PublicIp}:9000/hooks/your-hook-id"
