@@ -12,22 +12,25 @@
 #   sudo systemctl enable webhook
 #   sudo systemctl start webhook
 
+# Service Data and Dependencies
 [Unit]
 Description=Webhook CD Pipeline Listener
 Documentation=https://github.com/adnanh/webhook
-After=network.target docker.service
-Wants=docker.service
+After=network.target docker.service                 # Don't start until after networking is up
+Wants=docker.service                                # Request that docker starts too
 
+# How to Run the Service
 [Service]
 Type=simple
-User=ubuntu
-Group=ubuntu
-ExecStart=/usr/bin/webhook -hooks /home/ubuntu/hooks.yml -port 9000 -verbose
-Restart=on-failure
-RestartSec=5
-StandardOutput=journal
-StandardError=journal
+User=ubuntu                                                                     # Run as the ubuntu user
+Group=ubuntu                                                                    # Run with ubuntu group's perms -> allow docker access without sudo
+ExecStart=/usr/bin/webhook -hooks /home/ubuntu/hooks.yml -port 9000 -verbose    # The actual command to run
+Restart=on-failure                                                              # Restart policy
+RestartSec=5                                                                    # Wait time before restarting after a crashe
+StandardOutput=journal                                                          # Send logs to journalctl
+StandardError=journal                                                           # Send error logs to journalctl
 
+# Enables the Service
 [Install]
 WantedBy=multi-user.target
 
