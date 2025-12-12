@@ -113,7 +113,7 @@ The Run command will:
 docker run -d -p 80:80 --name p4-coffee-website --restart unless-stopped jericoco520/p4-coffee-website
 ```
 
-Access the web app from a browser from the URL: `http://localhost:80`
+Access the web app from a browser from the URL: `http://<EC2-Instance-IP>:80`
 
 ## Part 2 GitHub Actions and DockerHub
 
